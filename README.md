@@ -1,6 +1,7 @@
 # PortableDesktop
 
-**Mount portable directory as consistent user directory.*111111,xi-xiao*
+**Mount portable directory as consistent user directory.**
+**Because directory mapping needs to be created, it needs to be run by an administrator.**
 
 ## PortableDesktopCli
 
