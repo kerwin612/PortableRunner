@@ -1,0 +1,8 @@
+[package]
+name = "portable_desktop_env"
+version = "0.0.1"
+authors = ["kerwin612 <kerwin612@qq.com>"]
+
+[dependencies]
+random-string = "1.0.0"
+mount_dir = "0.0.4"
