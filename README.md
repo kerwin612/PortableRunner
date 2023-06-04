@@ -5,11 +5,11 @@
 
 **help**
 ```cmd
-PortableRunner [Target Path] [Link Path] [Home name]
+PortableRunner [Target Path] [Link Path] [Home Name]
         args:
                 Target Path: Specifies the physical drive and path that you want to assign to a virtual drive.
                 Link Path: Specifies the virtual drive and path to which you want to assign a path.
-                Home name: The subdirectory name of the <Link Path> directory, Will be specified as the value of %HOME%, which defaults to [.home].
+                Home Name: The subdirectory name of the <Link Path> directory, Will be specified as the value of %HOME%, which defaults to [.home].
 ```
 
 **example**
