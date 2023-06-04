@@ -42,15 +42,19 @@ fn set_save(set: Storage, _storage: State<Storage>) -> bool {
 #[tauri::command]
 fn cmd_load() -> Vec<Cmd> {
     let mut list = Vec::new();
-    let home_path = std::env::var("HOME").unwrap();
-    let pd_path = format!("{}\\.pd.json", &home_path);
-    if Path::new(&pd_path).exists() {
-        let content = std::fs::read_to_string(&pd_path).unwrap();
-        let config = serde_json::from_str::<HashMap<String, Value>>(&content).unwrap();
-        let shortcuts = &config["shortcuts"].as_object().unwrap();
-        for key in shortcuts.keys() {
-            list.push(Cmd { key: key.to_string(), cmd: (&shortcuts[key]).to_string() });
-        }
+    match std::env::var("HOME") {
+        Ok(val) => {
+            let pd_path = format!("{}\\.pd.json", &val);
+            if Path::new(&pd_path).exists() {
+                let content = std::fs::read_to_string(&pd_path).unwrap();
+                let config = serde_json::from_str::<HashMap<String, Value>>(&content).unwrap();
+                let shortcuts = &config["shortcuts"].as_object().unwrap();
+                for key in shortcuts.keys() {
+                    list.push(Cmd { key: key.to_string(), cmd: (&shortcuts[key]).to_string() });
+                }
+            }
+        },
+        Err(_e) => (),
     }
     return list;
 }
