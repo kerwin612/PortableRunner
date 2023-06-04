@@ -7,10 +7,15 @@ let inputLpath;
 let inputHpath;
 let buttonSave;
 let inputCmd;
+let cmdList;
 
-async function cmd() {
+async function cmdInput() {
   let cmdStr = inputCmd.value;
   inputCmd.value = null;
+  await invoke("cmd_runner", { cmdStrs: cmdStr.trim().split(/\s+/) });
+}
+
+async function cmdClick(cmdStr) {
   await invoke("cmd_runner", { cmdStrs: cmdStr.trim().split(/\s+/) });
 }
 
@@ -22,6 +27,10 @@ async function setLoad() {
 async function setSave() {
     let data = await invoke("set_save", {set: {tpath: inputTpath.value, lpath: inputLpath.value, hpath: inputHpath.value}});
     return data;
+}
+
+async function cmdLoad() {
+    return await invoke("cmd_load");
 }
 
 async function loaded() {
@@ -45,8 +54,25 @@ function showSet() {
 }
 
 function showCmd() {
+    refreshCmd();
     containerSet.classList.add("hide");
     containerCmd.classList.remove("hide");
+}
+
+function refreshCmd() {
+    cmdList.innerHTML = "";
+    cmdLoad().then(list => {
+        list.forEach(i => {
+            let item = document.createElement("div");
+            item.classList.add('cmd_item');
+            item.setAttribute('id', 'cmd_item');
+            item.innerHTML = `<span>${i.key}</span>`;
+            item.onclick = (e) => {
+                cmdClick(JSON.parse(i.cmd).toString());
+            };
+            cmdList.appendChild(item);
+        });
+    });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -57,6 +83,7 @@ window.addEventListener("DOMContentLoaded", () => {
     inputHpath = document.querySelector("#input_hpath");
     inputCmd = document.querySelector("#input_cmd");
     buttonSave = document.querySelector("#button_save");
+    cmdList = document.querySelector("#cmd_list");
 
     buttonSave.onclick = async () => {
         if (await setSave()) {
@@ -66,8 +93,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
     inputCmd.onkeydown = (e) => {
         if (e.keyCode != 13) return;
-        cmd();
+        cmdInput();
     };
 
     loaded();
+});
+
+window.addEventListener('focus', () => {
+    refreshCmd();
 });

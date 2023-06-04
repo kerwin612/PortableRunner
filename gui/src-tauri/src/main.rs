@@ -5,6 +5,7 @@ use std::env::args;
 use std::path::Path;
 use std::io::{Error};
 use std::process::Command;
+use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use std::os::windows::process::CommandExt;
 use tauri::{Manager, AppHandle, SystemTray, SystemTrayMenu, SystemTrayEvent, CustomMenuItem};
@@ -17,6 +18,12 @@ struct Storage {
     tpath: String,
     lpath: String,
     hpath: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Cmd {
+    key: String,
+    cmd: String,
 }
 
 #[tauri::command]
@@ -33,28 +40,25 @@ fn set_save(set: Storage, _storage: State<Storage>) -> bool {
 }
 
 #[tauri::command]
-async fn cmd_runner(cmd_strs: Vec<String>) -> () {
-    let alias = find_alias(cmd_strs[0].clone());
-    println!("{}", &format!("START /D %HOME% {} {}", if alias.is_none() {cmd_strs[0].clone()} else {alias.clone().unwrap()}, cmd_strs.strip_prefix(&[cmd_strs[0].clone()]).unwrap().join(" ")));
-    Command::new("CMD").args(["/C", &format!("START /D %HOME% {} {}", if alias.is_none() {cmd_strs[0].clone()} else {alias.clone().unwrap()}, cmd_strs.strip_prefix(&[cmd_strs[0].clone()]).unwrap().join(" "))]).creation_flags(0x08000000).status().unwrap();
-}
-
-fn find_alias(key: String) -> Option<String> {
+fn cmd_load() -> Vec<Cmd> {
+    let mut list = Vec::new();
     let home_path = std::env::var("HOME").unwrap();
     let pd_path = format!("{}\\.pd.json", &home_path);
     if Path::new(&pd_path).exists() {
         let content = std::fs::read_to_string(&pd_path).unwrap();
-        let config = serde_json::from_str::<Value>(&content).unwrap();
-        let alias = &config["shortcuts"];
-        let value = &alias[key];
-        if value.is_null() {
-            None
-        } else {
-            Some(String::from(value.as_str().unwrap()))
+        let config = serde_json::from_str::<HashMap<String, Value>>(&content).unwrap();
+        let shortcuts = &config["shortcuts"].as_object().unwrap();
+        for key in shortcuts.keys() {
+            list.push(Cmd { key: key.to_string(), cmd: (&shortcuts[key]).to_string() });
         }
-    } else {
-        None
     }
+    return list;
+}
+
+#[tauri::command]
+async fn cmd_runner(cmd_strs: Vec<String>) -> () {
+    println!("{}", &format!("START /D %HOME% {} {}", cmd_strs[0].clone(), cmd_strs.strip_prefix(&[cmd_strs[0].clone()]).unwrap().join(" ")));
+    Command::new("CMD").args(["/C", &format!("START /D %HOME% {} {}", cmd_strs[0].clone(), cmd_strs.strip_prefix(&[cmd_strs[0].clone()]).unwrap().join(" "))]).creation_flags(0x08000000).status().unwrap();
 }
 
 fn do_mount(storage: Storage) -> Result<bool, Error> {
@@ -116,7 +120,7 @@ fn main() {
         .manage(Storage { tpath, lpath, hpath })
         .system_tray(tray_menu())
         .on_system_tray_event(tray_handler)
-        .invoke_handler(tauri::generate_handler![set_load, set_save, cmd_runner])
+        .invoke_handler(tauri::generate_handler![set_load, set_save, cmd_load, cmd_runner])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {

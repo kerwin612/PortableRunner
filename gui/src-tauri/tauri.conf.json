@@ -43,7 +43,7 @@
         "resizable": false,
         "title": "PortableRunner",
         "width": 600,
-        "height": 60
+        "height": 400
       }
     ],
     "systemTray": {
