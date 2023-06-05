@@ -62,16 +62,28 @@ function showCmd() {
 function refreshCmd() {
     cmdList.innerHTML = "";
     cmdLoad().then(list => {
+        let groups = {};
         list.forEach(i => {
-            let item = document.createElement("div");
-            item.classList.add('cmd_item');
-            item.setAttribute('id', 'cmd_item');
-            item.innerHTML = `<span>${i.key}</span>`;
-            item.onclick = (e) => {
-                cmdClick(JSON.parse(i.cmd).toString());
-            };
-            cmdList.appendChild(item);
+            let group = i.group??'default';
+            let value = groups[group]||[];
+            value[value.length] = i;
+            groups[group] = value;
         });
+        for (let group in groups) {
+            let subList = document.createElement("div");
+            subList.classList.add('cmd_sub_list');
+            groups[group].forEach(i => {
+                let item = document.createElement("div");
+                item.classList.add('cmd_item');
+                item.setAttribute('id', 'cmd_item');
+                item.innerHTML = `<span>${i.key}</span>`;
+                item.onclick = (e) => {
+                    cmdClick(i.cmd);
+                };
+                subList.appendChild(item);
+            });
+            cmdList.appendChild(subList);
+        }
     });
 }
 

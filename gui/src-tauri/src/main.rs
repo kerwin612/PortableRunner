@@ -20,12 +20,6 @@ struct Storage {
     hpath: String,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Cmd {
-    key: String,
-    cmd: String,
-}
-
 #[tauri::command]
 fn set_load(storage: State<Storage>) -> Storage {
     Storage { tpath: storage.tpath.clone(), lpath: storage.lpath.clone(), hpath: storage.hpath.clone() }
@@ -40,23 +34,19 @@ fn set_save(set: Storage, _storage: State<Storage>) -> bool {
 }
 
 #[tauri::command]
-fn cmd_load() -> Vec<Cmd> {
-    let mut list = Vec::new();
+fn cmd_load() -> Vec<Value> {
     match std::env::var("HOME") {
         Ok(val) => {
             let pd_path = format!("{}\\.pd.json", &val);
             if Path::new(&pd_path).exists() {
                 let content = std::fs::read_to_string(&pd_path).unwrap();
                 let config = serde_json::from_str::<HashMap<String, Value>>(&content).unwrap();
-                let shortcuts = &config["shortcuts"].as_object().unwrap();
-                for key in shortcuts.keys() {
-                    list.push(Cmd { key: key.to_string(), cmd: (&shortcuts[key]).to_string() });
-                }
+                return config["shortcuts"].as_array().unwrap().to_vec();
             }
         },
         Err(_e) => (),
     }
-    return list;
+    return Vec::new();
 }
 
 #[tauri::command]

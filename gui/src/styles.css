@@ -3,6 +3,7 @@ body {
     padding: 10px;
     overflow: hidden;
     max-height: 360px;
+    user-select: none;
 }
 
 input {
@@ -74,15 +75,26 @@ input:focus {
 
 .cmd_list {
     display: flex;
+    height: 360px;
     flex-wrap: wrap;
     margin-top: 10px;
+    max-height: 360px;
     overflow-x: hidden;
     overflow-y: scroll;
+    align-content: baseline;
+}
+
+.cmd_sub_list {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: baseline;
 }
 
 .cmd_item {
     margin: 10px;
     cursor: pointer;
+    display: inline;
     padding: 5px 10px;
     border-radius: 5px;
     background: oldlace;

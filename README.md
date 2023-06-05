@@ -48,13 +48,31 @@ USERPROFILE=X:\work\.home
 **example**
 ```json
 {
-    "shortcuts": {
-        "open-url": "msedge",
-        "open-file": "explorer",
-        "open-home": "explorer %HOME%",
-        "reboot": "shutdown /r /f /t 0",
-        "shutdown": "shutdown /s /f /t 0"
-    }
+    "shortcuts": [
+        {
+            "key": "reboot",
+            "cmd": "shutdown /r /f /t 0"
+        },
+        {
+            "key": "shutdown",
+            "cmd": "shutdown /s /f /t 0"
+        },
+        {
+            "key": "open-url",
+            "cmd": "msedge",
+            "group": "open"
+        },
+        {
+            "key": "open-file",
+            "cmd": "explorer",
+            "group": "open"
+        },
+        {
+            "key": "open-home",
+            "cmd": "explorer %HOME%",
+            "group": "open"
+        }
+    ]
 }
 ```
 * entering [open-home], [explorer %HOME%] will be executed
