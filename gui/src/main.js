@@ -78,7 +78,12 @@ function refreshCmd() {
                 item.setAttribute('id', 'cmd_item');
                 item.innerHTML = `<span>${i.key}</span>`;
                 item.onclick = (e) => {
-                    cmdClick(i.cmd);
+                    if (i.parametersRequired) {
+                        inputCmd.value = i.cmd + " ";
+                        inputCmd.focus();
+                    } else {
+                        cmdClick(i.cmd);
+                    }
                 };
                 subList.appendChild(item);
             });

@@ -58,13 +58,9 @@ USERPROFILE=X:\work\.home
             "cmd": "shutdown /s /f /t 0"
         },
         {
-            "key": "open-url",
-            "cmd": "msedge",
-            "group": "open"
-        },
-        {
-            "key": "open-file",
+            "key": "open",
             "cmd": "explorer",
+            "parametersRequired": true,
             "group": "open"
         },
         {
