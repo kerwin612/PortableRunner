@@ -74,5 +74,5 @@ USERPROFILE=X:\work\.home
 }
 ```
 * entering [open-home], [explorer %HOME%] will be executed
-* entering [open-url github.com], [msedge github.com] will be executed
+* entering [open https://github.com], [explorer https://github.com] will be executed
 
