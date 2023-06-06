@@ -1,6 +1,6 @@
 [package]
 name = "portable_runner_gui"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["kerwin612 <kerwin612@qq.com>"]
 edition = "2021"
 

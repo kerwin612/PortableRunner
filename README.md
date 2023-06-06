@@ -50,10 +50,12 @@ USERPROFILE=X:\work\.home
 {
     "shortcuts": [
         {
+            "label": "重启",
             "key": "reboot",
             "cmd": "shutdown /r /f /t 0"
         },
         {
+            "label": "关机",
             "key": "shutdown",
             "cmd": "shutdown /s /f /t 0"
         },
