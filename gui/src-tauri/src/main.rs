@@ -26,10 +26,14 @@ fn set_load(storage: State<Storage>) -> Storage {
 }
 
 #[tauri::command]
-fn set_save(set: Storage, _storage: State<Storage>) -> bool {
-    match do_mount(set) {
+fn set_save(set: Storage, _storage: State<Storage>, app: AppHandle) -> bool {
+    match do_mount(Storage { tpath: set.tpath.clone(), lpath: set.lpath.clone(), hpath: set.hpath.clone() }) {
         Err(_e) => return false,
-        Ok(_r) => return true,
+        Ok(_r) => {
+            let window = app.get_window("main").unwrap();
+            window.set_title(&format!("PortableRunner ({} <=> {})", &set.tpath, &set.lpath)).unwrap();
+            return true;
+        },
     }
 }
 

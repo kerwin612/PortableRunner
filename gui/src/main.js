@@ -76,7 +76,7 @@ function refreshCmd() {
                 let item = document.createElement("div");
                 item.classList.add('cmd_item');
                 item.setAttribute('id', 'cmd_item');
-                item.innerHTML = `<span>${i.key}</span>`;
+                item.innerHTML = `<span>${i.label ? (i.label + '(' + i.key + ')') : i.key}</span>`;
                 item.onclick = (e) => {
                     if (i.parametersRequired) {
                         inputCmd.value = i.cmd + " ";
