@@ -59,6 +59,14 @@ function showCmd() {
     containerCmd.classList.remove("hide");
 }
 
+Element.prototype.insertChildAtIndex = function(child, index) {
+    if (!index) index = 0;
+    if (index >= this.children.length) {
+        this.appendChild(child);
+    } else {
+        this.insertBefore(child, this.children[index]);
+    }
+}
 function refreshCmd() {
     cmdLoad().then(list => {
 
@@ -86,6 +94,7 @@ function refreshCmd() {
             }
         });
 
+        let gindex = 0;
         for (let group in groups) {
 
             let gi = `group_${group}`;
@@ -94,10 +103,10 @@ function refreshCmd() {
                 ge = document.createElement("div");
                 ge.classList.add('cmd_sub_list');
                 ge.setAttribute('id', gi);
-                cmdList.appendChild(ge);
             }
+            cmdList.insertChildAtIndex(ge, gindex++);
 
-            groups[group].forEach(i => {
+            groups[group].forEach((i, iindex) => {
 
                 let ii = `item_${i.key}`;
                 let ie = document.getElementById(ii);
@@ -105,8 +114,8 @@ function refreshCmd() {
                     ie = document.createElement("div");
                     ie.classList.add('cmd_item');
                     ie.setAttribute('id', ii);
-                    ge.appendChild(ie);
                 }
+                ge.insertChildAtIndex(ie, iindex);
 
                 ie.innerHTML = `<span>${i.label ? (i.label + '(' + i.key + ')') : i.key}</span>`;
                 ie.onclick = (e) => {
