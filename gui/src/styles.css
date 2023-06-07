@@ -37,22 +37,26 @@ input:focus {
   -webkit-text-size-adjust: 100%;
 }
 
-.hide {
-    display: none!important;
-}
-
-.container_set {
+#container_set {
     display: flex;
     text-align: center;
     flex-direction: column;
     justify-content: space-around;
 }
 
-.container_cmd {
+#container_set input{
+    max-width: 120px;
+}
+
+#container_cmd {
     display: flex;
     overflow: hidden;
     max-height: 380px;
     flex-direction: column;
+}
+
+.hide {
+    display: none!important;
 }
 
 .set_main {
@@ -98,8 +102,4 @@ input:focus {
     padding: 5px 10px;
     border-radius: 5px;
     background: oldlace;
-}
-
-.container_set input{
-    max-width: 120px;
 }

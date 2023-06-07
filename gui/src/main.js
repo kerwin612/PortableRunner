@@ -60,24 +60,56 @@ function showCmd() {
 }
 
 function refreshCmd() {
-    cmdList.innerHTML = "";
     cmdLoad().then(list => {
+
         let groups = {};
+        let items = {};
         list.forEach(i => {
             let group = i.group??'default';
             let value = groups[group]||[];
             value[value.length] = i;
             groups[group] = value;
+            items[i.key] = i;
         });
+
+
+
+        cmdList.querySelectorAll(`.cmd_sub_list`).forEach(g => {
+            if (!(groups[g.id.substring(6)])) {
+                g.remove();
+            } else {
+                g.querySelectorAll('.cmd_item').forEach(i => {
+                    if (!(items[i.id.substring(5)]) || (i.parentElement.id.substring(6) !== (items[i.id.substring(5)].group??'default'))) {
+                        i.remove();
+                    }
+                });
+            }
+        });
+
         for (let group in groups) {
-            let subList = document.createElement("div");
-            subList.classList.add('cmd_sub_list');
+
+            let gi = `group_${group}`;
+            let ge = document.getElementById(gi);
+            if (ge == null) {
+                ge = document.createElement("div");
+                ge.classList.add('cmd_sub_list');
+                ge.setAttribute('id', gi);
+                cmdList.appendChild(ge);
+            }
+
             groups[group].forEach(i => {
-                let item = document.createElement("div");
-                item.classList.add('cmd_item');
-                item.setAttribute('id', 'cmd_item');
-                item.innerHTML = `<span>${i.label ? (i.label + '(' + i.key + ')') : i.key}</span>`;
-                item.onclick = (e) => {
+
+                let ii = `item_${i.key}`;
+                let ie = document.getElementById(ii);
+                if (ie == null) {
+                    ie = document.createElement("div");
+                    ie.classList.add('cmd_item');
+                    ie.setAttribute('id', ii);
+                    ge.appendChild(ie);
+                }
+
+                ie.innerHTML = `<span>${i.label ? (i.label + '(' + i.key + ')') : i.key}</span>`;
+                ie.onclick = (e) => {
                     if (i.parametersRequired) {
                         inputCmd.value = i.cmd + " ";
                         inputCmd.focus();
@@ -85,22 +117,22 @@ function refreshCmd() {
                         cmdClick(i.cmd);
                     }
                 };
-                subList.appendChild(item);
+
             });
-            cmdList.appendChild(subList);
         }
+
     });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    containerSet = document.querySelector(".container_set");
-    containerCmd = document.querySelector(".container_cmd");
-    inputTpath = document.querySelector("#input_tpath");
-    inputLpath = document.querySelector("#input_lpath");
-    inputHpath = document.querySelector("#input_hpath");
-    inputCmd = document.querySelector("#input_cmd");
-    buttonSave = document.querySelector("#button_save");
-    cmdList = document.querySelector("#cmd_list");
+    containerSet = document.getElementById("container_set");
+    containerCmd = document.getElementById("container_cmd");
+    inputTpath = document.getElementById("input_tpath");
+    inputLpath = document.getElementById("input_lpath");
+    inputHpath = document.getElementById("input_hpath");
+    inputCmd = document.getElementById("input_cmd");
+    buttonSave = document.getElementById("button_save");
+    cmdList = document.getElementById("cmd_list");
 
     buttonSave.onclick = async () => {
         if (await setSave()) {
