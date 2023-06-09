@@ -1,0 +1,67 @@
+{
+    "shortcuts": [
+        {
+            "key": "shutdown",
+            "cmd": "shutdown /s /f /t 0"
+        },
+        {
+            "key": "reboot",
+            "cmd": "shutdown /r /f /t 0"
+        },
+
+        {
+            "key": "open",
+            "cmd": "explorer",
+            "parametersRequired": true
+        },
+        {
+            "key": "home",
+            "cmd": "explorer %HOME%"
+        },
+
+        {
+            "key": "mstsc",
+            "cmd": "mstsc",
+            "group": "accessories"
+        },
+        {
+            "key": "notepad",
+            "cmd": "notepad",
+            "group": "accessories"
+        },
+        {
+            "key": "calculator",
+            "cmd": "calc",
+            "group": "accessories"
+        },
+        {
+            "key": "paint",
+            "cmd": "mspaint",
+            "group": "accessories"
+        },
+
+        {
+            "key": "edge.restore",
+            "cmd": "msedge --restore-last-session --allow-file-access-from-files"
+        },
+
+        {
+            "key": "jd.gui",
+            "cmd": "jd-gui",
+            "group": "dev"
+        },
+
+        {
+            "label": "LinkPath",
+            "key": "files.lp",
+            "cmd": "explorer %PORTABLE_RUNNER_ENV_LINK_PATH%",
+            "group": "files"
+        },
+        {
+            "label": "TargetPath",
+            "key": "files.tp",
+            "cmd": "explorer %PORTABLE_RUNNER_ENV_TARGET_PATH%",
+            "group": "files"
+        }
+    ]
+}
