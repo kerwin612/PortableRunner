@@ -1,8 +1,8 @@
 extern crate mount_dir;
 extern crate random_string;
 
-use std::env::{set_var};
 use std::process::Command;
+use std::env::{var, set_var};
 use std::fs::{remove_dir_all};
 use std::path::{Component, Path};
 use std::os::windows::process::CommandExt;
@@ -36,6 +36,17 @@ pub fn mount(tpath: &str, lpath: &str, hpath: &str, force: bool) -> Result<bool,
     let local_app_data = format!("{}\\Local", &app_data);
     let temp = format!("{}\\Temp", &local_app_data);
 
+    set_var("PORTABLE_RUNNER_ENV_LINK_PATH", &lpath);
+    set_var("PORTABLE_RUNNER_ENV_TARGET_PATH", &tpath);
+    set_var("PORTABLE_RUNNER_HOST_TMP", var("TMP").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_TEMP", var("TEMP").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_HOME", var("HOME").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_APPDATA", var("APPDATA").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_HOMEPATH", var("HOMEPATH").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_HOMEDRIVE", var("HOMEDRIVE").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_USERPROFILE", var("USERPROFILE").unwrap_or("".to_string()));
+    set_var("PORTABLE_RUNNER_HOST_LOCALAPPDATA", var("LOCALAPPDATA").unwrap_or("".to_string()));
+
     set_var("TMP", &temp);
     set_var("TEMP", &temp);
     set_var("HOME", &_hpath);
@@ -44,8 +55,6 @@ pub fn mount(tpath: &str, lpath: &str, hpath: &str, force: bool) -> Result<bool,
     set_var("HOMEDRIVE", get_disk(lpath));
     set_var("APPDATA", &roaming_app_data);
     set_var("LOCALAPPDATA", &local_app_data);
-    set_var("PORTABLE_RUNNER_ENV_LINK_PATH", &lpath);
-    set_var("PORTABLE_RUNNER_ENV_TARGET_PATH", &tpath);
 
     let mut profile_path = format!("{}\\.profile.cmd", &_hpath);
     if ! Path::new(&profile_path).exists() {
