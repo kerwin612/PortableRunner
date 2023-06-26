@@ -1,4 +1,5 @@
 const { invoke } = window.__TAURI__.tauri;
+const { writeText } = window.__TAURI__.clipboard;
 
 let containerSet;
 let containerCmd;
@@ -126,6 +127,21 @@ function refreshCmd() {
                         cmdClick(i.cmd);
                     }
                 };
+                ie.onmousedown = (e) => {
+                    let isRightMB;
+                    e = e || window.event;
+
+                    if ("which" in e)  // Gecko (Firefox), WebKit (Safari/Chrome) & Opera
+                        isRightMB = e.which == 3;
+                    else if ("button" in e)  // IE, Opera
+                        isRightMB = e.button == 2;
+
+                    if (isRightMB) {
+                        writeText(i.cmd).then(_ => {
+                            //
+                        });
+                    }
+                }
 
             });
         }
@@ -160,3 +176,5 @@ window.addEventListener("DOMContentLoaded", () => {
 window.addEventListener('focus', () => {
     refreshCmd();
 });
+
+document.addEventListener('contextmenu', event => event.preventDefault());
