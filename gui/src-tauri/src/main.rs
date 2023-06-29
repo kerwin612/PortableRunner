@@ -8,8 +8,8 @@ use std::process::Command;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use std::os::windows::process::CommandExt;
-use tauri::{Manager, AppHandle, SystemTray, SystemTrayMenu, SystemTrayEvent, CustomMenuItem};
-use tauri::State;
+use tauri::{State, Manager, AppHandle, SystemTray, SystemTrayMenu, SystemTrayEvent, CustomMenuItem};
+use tauri::api::shell::{open};
 use serde_json::{Value};
 use portable_runner_env::{mount};
 
@@ -30,6 +30,8 @@ fn set_save(set: Storage, _storage: State<Storage>, app: AppHandle) -> bool {
     match do_mount(Storage { tpath: set.tpath.clone(), lpath: set.lpath.clone(), hpath: set.hpath.clone() }) {
         Err(_e) => return false,
         Ok(_r) => {
+            let tray = app.tray_handle();
+            tray.set_tooltip(&format!("PortableRunner ({} <=> {})", &set.tpath, &set.lpath)).unwrap();
             let window = app.get_window("main").unwrap();
             window.set_title(&format!("PortableRunner ({} <=> {})", &set.tpath, &set.lpath)).unwrap();
             return true;
@@ -77,6 +79,7 @@ fn toggle_main_window(app: &AppHandle) {
 
 fn tray_menu() -> SystemTray {
     let tray_menu = SystemTrayMenu::new()
+        .add_item(CustomMenuItem::new("help".to_string(), "Help"))
         .add_item(CustomMenuItem::new("quit".to_string(), "Exit"));
     SystemTray::new().with_menu(tray_menu)
 }
@@ -87,6 +90,12 @@ fn tray_handler(app: &AppHandle, event: SystemTrayEvent) {
             toggle_main_window(app);
         }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+            "help" => {
+                match open(&app.shell_scope(), "https://github.com/kerwin612/PortableRunner", None) {
+                    Err(_) => (),
+                    Ok(_) => ()
+                }
+            },
             "quit" => {
                 std::process::exit(0);
             }

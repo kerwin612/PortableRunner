@@ -115,6 +115,7 @@ function refreshCmd() {
                     ie = document.createElement("div");
                     ie.classList.add('cmd_item');
                     ie.setAttribute('id', ii);
+                    ie.setAttribute('style', i.style||'');
                 }
                 ge.insertChildAtIndex(ie, iindex);
 
