@@ -2448,7 +2448,7 @@ dependencies = [
 
 [[package]]
 name = "portable_runner_gui"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "portable_runner_env",
  "serde",

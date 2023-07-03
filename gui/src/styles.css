@@ -103,3 +103,8 @@ input:focus {
     border-radius: 5px;
     background: oldlace;
 }
+
+.cmd_list .disabled {
+    margin: 8px;
+    border: 2px solid darkgray;
+}

@@ -1,12 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::fs;
 use std::env::args;
 use std::path::Path;
 use std::io::{Error};
 use std::process::Command;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
+use std::time::{UNIX_EPOCH};
 use std::os::windows::process::CommandExt;
 use tauri::{State, Manager, AppHandle, SystemTray, SystemTrayMenu, SystemTrayEvent, CustomMenuItem};
 use tauri::api::shell::{open};
@@ -31,12 +33,26 @@ fn set_save(set: Storage, _storage: State<Storage>, app: AppHandle) -> bool {
         Err(_e) => return false,
         Ok(_r) => {
             let tray = app.tray_handle();
-            tray.set_tooltip(&format!("PortableRunner ({} <=> {})", &set.tpath, &set.lpath)).unwrap();
+            tray.set_tooltip(&format!("PortableRunner ({} <=> {})", &set.lpath, &set.tpath)).unwrap();
             let window = app.get_window("main").unwrap();
-            window.set_title(&format!("PortableRunner ({} <=> {})", &set.tpath, &set.lpath)).unwrap();
+            window.set_title(&format!("PortableRunner ({} <=> {})", &set.lpath, &set.tpath)).unwrap();
             return true;
         },
     }
+}
+
+#[tauri::command]
+fn cfg_epoch() -> u128 {
+    match std::env::var("HOME") {
+        Ok(val) => {
+            let pd_path = format!("{}\\.pd.json", &val);
+            if Path::new(&pd_path).exists() {
+                return fs::metadata(pd_path).unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_millis();
+            }
+        },
+        Err(_e) => (),
+    }
+    return 0;
 }
 
 #[tauri::command]
@@ -127,7 +143,7 @@ fn main() {
         .manage(Storage { tpath, lpath, hpath })
         .system_tray(tray_menu())
         .on_system_tray_event(tray_handler)
-        .invoke_handler(tauri::generate_handler![set_load, set_save, cmd_load, cmd_runner])
+        .invoke_handler(tauri::generate_handler![set_load, set_save, cmd_load, cfg_epoch, cmd_runner])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {
