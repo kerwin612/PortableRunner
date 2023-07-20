@@ -82,9 +82,9 @@ input:focus {
     height: 360px;
     flex-wrap: wrap;
     margin-top: 10px;
+    overflow-y: auto;
     max-height: 360px;
     overflow-x: hidden;
-    overflow-y: scroll;
     align-content: baseline;
 }
 
