@@ -1,0 +1,25 @@
+[package]
+name = "portable_runner"
+version = "0.0.1"
+description = "Mount the portable directory as a consistent user directory. Then, based on this user directory, run your program."
+authors = ["kerwin612 <kerwin612@qq.com>"]
+license = "MIT"
+repository = "https://github.com/kerwin612/PortableRunner"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = [ "system-tray", "api-all"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+mount_dir = "0.0.4"
+random-string = "1.0.0"
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

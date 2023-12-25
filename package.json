@@ -1,12 +1,12 @@
 {
-  "name": "gui",
+  "name": "portable_runner",
   "private": true,
-  "version": "0.0.7",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.4.0"
+    "@tauri-apps/cli": "^1.5.7"
   }
 }

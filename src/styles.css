@@ -108,3 +108,8 @@ input:focus {
     margin: 8px;
     border: 2px solid darkgray;
 }
+
+.with_file_drop_main {
+    display: flex;
+    justify-content: space-around;
+}

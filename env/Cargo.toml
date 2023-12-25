@@ -1,8 +1,0 @@
-[package]
-name = "portable_runner_env"
-version = "0.0.2"
-authors = ["kerwin612 <kerwin612@qq.com>"]
-
-[dependencies]
-random-string = "1.0.0"
-mount_dir = "0.0.4"
