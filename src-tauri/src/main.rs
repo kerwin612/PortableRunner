@@ -3,6 +3,7 @@
 
 extern crate mount_dir;
 extern crate random_string;
+extern crate lnk;
 
 use std::fs;
 use std::process::Command;
@@ -17,6 +18,7 @@ use tauri::{State, Manager, AppHandle, SystemTray, SystemTrayMenu, SystemTrayEve
 use tauri::api::shell::{open};
 use serde_json::{Value};
 use random_string::generate;
+use lnk::ShellLink;
 
 const DEFAULT_PROFILE: &str = r#"@ECHO OFF
 
@@ -128,6 +130,97 @@ struct Storage {
     hpath: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct LnkInfo {
+    name: Option<String>,
+    target: Option<String>,
+    arguments: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Config {
+    shortcuts: Vec<Shortcut>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Shortcut {
+    key: String,
+    cmd: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    group: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    style: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters_required: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    with_file_drop: Option<WithFileDrop>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct WithFileDrop {
+    pattern: String,
+    parameters: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file_required: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    folder_required: Option<bool>,
+}
+
+fn read_pr_file(path: &Path) -> Result<Config, serde_json::Error> {
+    let content = fs::read_to_string(&path).unwrap();
+    serde_json::from_str(&content)
+}
+
+fn write_pr_file(path: &Path, config: &Config) -> Result<(), serde_json::Error> {
+    let mut buf = Vec::new();
+    let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+    let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
+    config.serialize(&mut ser).unwrap();
+
+    let serialized = String::from_utf8(buf).unwrap();
+    let mut file = fs::File::create(path).unwrap();
+    file.write_all(serialized.as_bytes()).unwrap();
+    Ok(())
+}
+
+#[tauri::command]
+fn read_lnk(lnk: String) -> LnkInfo {
+    let shortcut = ShellLink::open(lnk).unwrap();
+    match shortcut.link_info() {
+        Some(link_info) => {
+            return LnkInfo {
+                name: shortcut.name().clone(),
+                target: link_info.local_base_path().clone(),
+                arguments: shortcut.arguments().clone(),
+            }
+        },
+        &None => return LnkInfo {
+            name: None,
+            target: None,
+            arguments: None,
+        },
+    }
+}
+
+#[tauri::command]
+fn add_shortcut(shortcut: Shortcut) -> bool {
+    match std::env::var("HOME") {
+        Ok(val) => {
+            let pr_path_str = format!("{}\\.pr.json", &val);
+            let pr_path = Path::new(&pr_path_str);
+            let mut config = read_pr_file(&pr_path).unwrap();
+
+            config.shortcuts.push(shortcut);
+
+            write_pr_file(&pr_path, &config).unwrap();
+            return true;
+        },
+        Err(_) => return false,
+    }
+}
+
 #[tauri::command]
 fn set_load(storage: State<Storage>) -> Storage {
     Storage { tpath: storage.tpath.clone(), lpath: storage.lpath.clone(), hpath: storage.hpath.clone() }
@@ -149,26 +242,12 @@ fn set_save(set: Storage, _storage: State<Storage>, app: AppHandle) -> bool {
 }
 
 #[tauri::command]
-fn cfg_epoch() -> u128 {
-    match std::env::var("HOME") {
-        Ok(val) => {
-            let pd_path = format!("{}\\.pr.json", &val);
-            if Path::new(&pd_path).exists() {
-                return fs::metadata(pd_path).unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_millis();
-            }
-        },
-        Err(_e) => (),
-    }
-    return 0;
-}
-
-#[tauri::command]
 fn cmd_load() -> Vec<Value> {
     match std::env::var("HOME") {
         Ok(val) => {
-            let pd_path = format!("{}\\.pr.json", &val);
-            if Path::new(&pd_path).exists() {
-                let content = fs::read_to_string(&pd_path).unwrap();
+            let pr_path = format!("{}\\.pr.json", &val);
+            if Path::new(&pr_path).exists() {
+                let content = fs::read_to_string(&pr_path).unwrap();
                 let config = serde_json::from_str::<HashMap<String, Value>>(&content).unwrap();
                 return config["shortcuts"].as_array().unwrap().to_vec();
             }
@@ -179,14 +258,40 @@ fn cmd_load() -> Vec<Value> {
 }
 
 #[tauri::command]
-async fn cmd_runner(cmd_str: String) -> () {
+fn cfg_epoch() -> u128 {
     match std::env::var("HOME") {
         Ok(val) => {
-            println!("{}", &format!("START /D {} {}", &val, cmd_str));
-            Command::new("CMD").current_dir(&val).args(["/C", &format!("START {}", cmd_str)]).creation_flags(0x08000000).status().unwrap();
+            let pr_path = format!("{}\\.pr.json", &val);
+            if Path::new(&pr_path).exists() {
+                return fs::metadata(pr_path).unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_millis();
+            }
         },
         Err(_e) => (),
     }
+    return 0;
+}
+
+#[tauri::command]
+async fn cmd_runner(cmd_str: String) -> () {
+    match std::env::var("HOME") {
+        Ok(val) => {
+            let temp_file = create_temp_file(&format!(r#"START "PortableRunner" {}"#, cmd_str));
+            println!("[{}]: {}", &temp_file, &format!(r#"START "PortableRunner" /D {} {}"#, &val, cmd_str));
+            Command::new("CMD").current_dir(&val).args(["/C", &temp_file]).creation_flags(0x08000000).status().unwrap();
+            fs::remove_file(&temp_file).unwrap();
+        },
+        Err(_e) => (),
+    }
+}
+
+fn create_temp_file(text: &str) -> String {
+    let temp_dir = std::env::temp_dir();
+    let file_path = temp_dir.join(&format!(".pr.tmp.{}.cmd", generate(16, "1234567890")));
+
+    let mut file = fs::File::create(&file_path).unwrap();
+    write!(file, "{}", text).unwrap();
+
+    file_path.to_str().unwrap().to_string()
 }
 
 fn mount(storage: Storage) -> Result<bool, Error> {
@@ -288,9 +393,9 @@ fn generate_default_cfg() -> Result<bool, Error> {
             if !(home_path.exists()) {
                 fs::create_dir_all(home_path).unwrap();
             }
-            let pd_path = home_path.join(".pr.json");
-            if !(pd_path.exists()) {
-                match fs::File::create(pd_path) {
+            let pr_path = home_path.join(".pr.json");
+            if !(pr_path.exists()) {
+                match fs::File::create(pr_path) {
                     Ok(mut file) => {
                         match file.write_all(DEFAULT_CFG.as_bytes()) {
                             Ok(_) => Ok(true), // File created and written successfully
@@ -381,7 +486,7 @@ fn main() {
         .manage(Storage { tpath, lpath, hpath })
         .system_tray(tray_menu())
         .on_system_tray_event(tray_handler)
-        .invoke_handler(tauri::generate_handler![set_load, set_save, cmd_load, cfg_epoch, cmd_runner])
+        .invoke_handler(tauri::generate_handler![read_lnk, set_load, set_save, cmd_load, cfg_epoch, cmd_runner, add_shortcut])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {

@@ -2,6 +2,7 @@ const { readDir } = window.__TAURI__.fs;
 const { invoke } = window.__TAURI__.tauri;
 const { listen } = window.__TAURI__.event;
 const { writeText } = window.__TAURI__.clipboard;
+const { basename, extname } = window.__TAURI__.path;
 
 let containerWithFileDropCmd;
 let containerSet;
@@ -41,6 +42,19 @@ String.prototype.isDir = async function() {
     return false;
 }
 
+String.prototype.getFileNameWithoutExt = async function() {
+    try {
+        let namewithext = await basename(this);
+        let ext = await extname(this);
+        return namewithext.substring(0, namewithext.length - ext.length - 1);
+    } catch (error) {}
+    return null;
+}
+
+function readLnk(lnk) {
+    return invoke("read_lnk", { lnk });
+}
+
 function setLoad() {
     return invoke("set_load");
 }
@@ -49,12 +63,16 @@ function setSave() {
     return invoke("set_save", {set: {tpath: inputTpath.value, lpath: inputLpath.value, hpath: (inputHpath.value ?? "").trim() || ".home"}});
 }
 
+function cmdLoad() {
+    return invoke("cmd_load");
+}
+
 function cfgEpoch() {
     return invoke("cfg_epoch");
 }
 
-function cmdLoad() {
-    return invoke("cmd_load");
+function cmdClick(cmdStr) {
+  return invoke("cmd_runner", { cmdStr: cmdStr.trim() });
 }
 
 function cmdInput() {
@@ -63,8 +81,8 @@ function cmdInput() {
   return invoke("cmd_runner", { cmdStr: cmdStr.trim() });
 }
 
-function cmdClick(cmdStr) {
-  return invoke("cmd_runner", { cmdStr: cmdStr.trim()  });
+function addShortcut(shortcut) {
+  return invoke("add_shortcut", { shortcut });
 }
 
 function loaded() {
@@ -193,29 +211,40 @@ async function doRefreshCmd(list) {
     unListenFileDrop = await listen("tauri://file-drop", async event => {
         if ((event?.payload || []).length < 0)  return;
         let file = event.payload[0];
-        let isDir = await file.isDir();
-        let matchs = list.filter(i => i.withFileDrop && i.withFileDrop.pattern && (((i.withFileDrop?.folderRequired??false) === true && isDir) || (i.withFileDrop?.folderRequired??false) !== true) && (((i.withFileDrop?.fileRequired??false) === true && !isDir) || (i.withFileDrop?.fileRequired??false) !== true) && new RegExp(i.withFileDrop.pattern).test(file));
-        if (matchs.length === 0) {
-            inputCmd.value = file;
-            return;
-        } else if (matchs.length === 1) {
-            let i = matchs[0];
-            cmdClick(getCmdlineWithFile(i, file)).then(_ => {
-                //
-            });
-        } else {
-            filePath.value = file;
-            matchList.clearChildren();
-            matchs.forEach((i, iindex) => {
-                createItemElement(i, iindex, matchList, "match_list", () => getCmdlineWithFile(i, file), (ie) => {
-                    if (ie.classList.contains("disabled"))    return;
-                    ie.classList.add("disabled");
-                    cmdClick(getCmdlineWithFile(i, file)).then(_ => {
-                        ie.classList.remove("disabled");
-                    });
+        if (file.endsWith('.lnk')) {
+            readLnk(file).then(async (lnkInfo) => {
+                addShortcut({
+                    key: (lnkInfo?.name ?? '') || await lnkInfo.target.getFileNameWithoutExt(),
+                    cmd: `"${lnkInfo.target}" ${lnkInfo?.arguments ?? ''}`,
+                }).then(() => {
+                    refreshCmd();
                 });
             });
-            showWithFileDropCmd();
+        } else {
+            let isDir = await file.isDir();
+            let matchs = list.filter(i => i.withFileDrop && i.withFileDrop.pattern && (((i.withFileDrop?.folderRequired??false) === true && isDir) || (i.withFileDrop?.folderRequired??false) !== true) && (((i.withFileDrop?.fileRequired??false) === true && !isDir) || (i.withFileDrop?.fileRequired??false) !== true) && new RegExp(i.withFileDrop.pattern).test(file));
+            if (matchs.length === 0) {
+                inputCmd.value = file;
+                return;
+            } else if (matchs.length === 1) {
+                let i = matchs[0];
+                cmdClick(getCmdlineWithFile(i, file)).then(_ => {
+                    //
+                });
+            } else {
+                filePath.value = file;
+                matchList.clearChildren();
+                matchs.forEach((i, iindex) => {
+                    createItemElement(i, iindex, matchList, "match_list", () => getCmdlineWithFile(i, file), (ie) => {
+                        if (ie.classList.contains("disabled"))    return;
+                        ie.classList.add("disabled");
+                        cmdClick(getCmdlineWithFile(i, file)).then(_ => {
+                            ie.classList.remove("disabled");
+                        });
+                    });
+                });
+                showWithFileDropCmd();
+            }
         }
     });
 }

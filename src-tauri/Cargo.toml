@@ -1,6 +1,6 @@
 [package]
 name = "portable_runner"
-version = "0.0.8"
+version = "0.0.9"
 description = "Mount the portable directory as a consistent user directory. Then, based on this user directory, run your program."
 authors = ["kerwin612 <kerwin612@qq.com>"]
 license = "MIT"
@@ -18,6 +18,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 mount_dir = "0.0.4"
 random-string = "1.0.0"
+lnk = "0.5.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
