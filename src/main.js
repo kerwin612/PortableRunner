@@ -151,8 +151,8 @@ function createItemElement(i, index, parent, idPrefix, getCMD, onClick) {
     }
 }
 
-function getCmdlineWithFile(i, file) {
-    return i.cmd + " " + i.withFileDrop.parameters.replaceAll("{0}", file);
+function getCmdlineWithFile(i, file, fileDrop) {
+    return i.cmd + " " + fileDrop.parameters.replaceAll("{0}", file);
 }
 
 async function doRefreshCmd(list) {
@@ -222,23 +222,34 @@ async function doRefreshCmd(list) {
             });
         } else {
             let isDir = await file.isDir();
-            let matchs = list.filter(i => i.withFileDrop && i.withFileDrop.pattern && (((i.withFileDrop?.folderRequired??false) === true && isDir) || (i.withFileDrop?.folderRequired??false) !== true) && (((i.withFileDrop?.fileRequired??false) === true && !isDir) || (i.withFileDrop?.fileRequired??false) !== true) && new RegExp(i.withFileDrop.pattern).test(file));
+            let matchs = []
+            list.forEach(i => {
+                if (!!!(i.withFileDrop)) return;
+                i.withFileDrop.forEach(j => {
+                    if (j.pattern && new RegExp(j.pattern).test(file)) {
+                        if (((j?.folderRequired??false) === true && !isDir) || ((j?.fileRequired??false) === true && isDir)) {
+                            return;
+                        }
+                        matchs[matchs.length] = {...i, key: `${i.cmd} ${j.parameters}`, withFileDrop: j};
+                    }
+                });
+            });
             if (matchs.length === 0) {
-                inputCmd.value = file;
+                inputCmd.value = `"${file}"`;
                 return;
             } else if (matchs.length === 1) {
                 let i = matchs[0];
-                cmdClick(getCmdlineWithFile(i, file)).then(_ => {
+                cmdClick(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
                     //
                 });
             } else {
                 filePath.value = file;
                 matchList.clearChildren();
                 matchs.forEach((i, iindex) => {
-                    createItemElement(i, iindex, matchList, "match_list", () => getCmdlineWithFile(i, file), (ie) => {
+                    createItemElement(i, iindex, matchList, "match_list", () => getCmdlineWithFile(i, file, i.withFileDrop), (ie) => {
                         if (ie.classList.contains("disabled"))    return;
                         ie.classList.add("disabled");
-                        cmdClick(getCmdlineWithFile(i, file)).then(_ => {
+                        cmdClick(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
                             ie.classList.remove("disabled");
                         });
                     });

@@ -43,11 +43,18 @@ const DEFAULT_CFG: &str = r#"{
         {
             "key": "cmd",
             "cmd": "cmd",
-            "withFileDrop": {
-                "pattern": ".*",
-                "folderRequired": true,
-                "parameters": "/s /k cd /d {0}"
-            },
+            "withFileDrop": [
+                {
+                    "pattern": ".*",
+                    "folderRequired": true,
+                    "parameters": "/s /k cd /d \"{0}\""
+                },
+                {
+                    "pattern": ".*\\.(bat|cmd)$",
+                    "fileRequired": true,
+                    "parameters": "/s /k \"{0}\""
+                }
+            ],
             "style": "background-color: black; color: white;"
         },
         {
@@ -76,11 +83,13 @@ const DEFAULT_CFG: &str = r#"{
             "key": "notepad",
             "cmd": "notepad",
             "group": "accessories",
-            "withFileDrop": {
-                "pattern": ".*",
-                "fileRequired": true,
-                "parameters": "{0}"
-            },
+            "withFileDrop": [
+                {
+                    "pattern": ".*\\.(txt|log|out)$",
+                    "fileRequired": true,
+                    "parameters": "\"{0}\""
+                }
+            ],
             "style": "background-color: #5bc0de;"
         },
         {
@@ -100,6 +109,13 @@ const DEFAULT_CFG: &str = r#"{
             "cmd": "explorer",
             "parametersRequired": true,
             "group": "open",
+            "withFileDrop": [
+                {
+                    "pattern": ".*\\.(exe)$",
+                    "fileRequired": true,
+                    "parameters": "\"{0}\""
+                }
+            ],
             "style": "background-color: navajowhite;"
         },
         {
@@ -148,13 +164,15 @@ struct Shortcut {
     key: String,
     cmd: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     parameters_required: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    with_file_drop: Option<WithFileDrop>,
+    with_file_drop: Option<Vec<WithFileDrop>>,
 }
 
 #[derive(Serialize, Deserialize)]
