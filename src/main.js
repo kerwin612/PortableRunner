@@ -1,8 +1,8 @@
-const { readDir } = window.__TAURI__.fs;
-const { invoke } = window.__TAURI__.tauri;
+import './libs/extensions.js';
+import * as API from './libs/apis.js';
+
 const { listen } = window.__TAURI__.event;
 const { writeText } = window.__TAURI__.clipboard;
-const { basename, extname } = window.__TAURI__.path;
 
 let containerWithFileDropCmd;
 let containerSet;
@@ -19,74 +19,18 @@ let buttonBack;
 let cfgLMT;
 let unListenFileDrop;
 
-Element.prototype.clearChildren = function() {
-    while (this.firstChild) {
-        this.removeChild(this.firstChild);
-    }
-}
-
-Element.prototype.insertChildAtIndex = function(child, index) {
-    if (!index) index = 0;
-    if (index >= this.children.length) {
-        this.appendChild(child);
-    } else {
-        this.insertBefore(child, this.children[index]);
-    }
-}
-
-String.prototype.isDir = async function() {
-    try {
-        let files = await readDir(this);
-        return !!files;
-    } catch (error) {}
-    return false;
-}
-
-String.prototype.getFileNameWithoutExt = async function() {
-    try {
-        let namewithext = await basename(this);
-        let ext = await extname(this);
-        return namewithext.substring(0, namewithext.length - ext.length - 1);
-    } catch (error) {}
-    return null;
-}
-
-function readLnk(lnk) {
-    return invoke("read_lnk", { lnk });
-}
-
-function setLoad() {
-    return invoke("set_load");
-}
-
 function setSave() {
-    return invoke("set_save", {set: {tpath: inputTpath.value, lpath: inputLpath.value, hpath: (inputHpath.value ?? "").trim() || ".home"}});
-}
-
-function cmdLoad() {
-    return invoke("cmd_load");
-}
-
-function cfgEpoch() {
-    return invoke("cfg_epoch");
-}
-
-function cmdClick(cmdStr) {
-  return invoke("cmd_runner", { cmdStr: cmdStr.trim() });
+    return API.setSave({tpath: inputTpath.value, lpath: inputLpath.value, hpath: (inputHpath.value ?? "").trim() || ".home"});
 }
 
 function cmdInput() {
   let cmdStr = inputCmd.value;
   inputCmd.value = null;
-  return invoke("cmd_runner", { cmdStr: cmdStr.trim() });
-}
-
-function addShortcut(shortcut) {
-  return invoke("add_shortcut", { shortcut });
+  return API.cmdRunner(cmdStr.trim());
 }
 
 function loaded() {
-    setLoad().then(s => {
+    API.setLoad().then(s => {
         if (!(s.tpath) || !(s.lpath)) {
             showSet();
         } else {
@@ -199,7 +143,7 @@ async function doRefreshCmd(list) {
                     inputCmd.focus();
                     ie.classList.remove("disabled");
                 } else {
-                    cmdClick(i.cmd).then(_ => {
+                    API.cmdRunner(i.cmd).then(_ => {
                         ie.classList.remove("disabled");
                     });
                 }
@@ -212,8 +156,8 @@ async function doRefreshCmd(list) {
         if ((event?.payload || []).length < 0)  return;
         let file = event.payload[0];
         if (file.endsWith('.lnk')) {
-            readLnk(file).then(async (lnkInfo) => {
-                addShortcut({
+            API.readLnk(file).then(async (lnkInfo) => {
+                API.addShortcut({
                     key: (lnkInfo?.name ?? '') || await lnkInfo.target.getFileNameWithoutExt(),
                     cmd: `"${lnkInfo.target}" ${lnkInfo?.arguments ?? ''}`,
                 }).then(() => {
@@ -239,7 +183,7 @@ async function doRefreshCmd(list) {
                 return;
             } else if (matchs.length === 1) {
                 let i = matchs[0];
-                cmdClick(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
+                API.cmdRunner(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
                     //
                 });
             } else {
@@ -249,7 +193,7 @@ async function doRefreshCmd(list) {
                     createItemElement(i, iindex, matchList, "match_list", () => getCmdlineWithFile(i, file, i.withFileDrop), (ie) => {
                         if (ie.classList.contains("disabled"))    return;
                         ie.classList.add("disabled");
-                        cmdClick(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
+                        API.cmdRunner(getCmdlineWithFile(i, file, i.withFileDrop)).then(_ => {
                             ie.classList.remove("disabled");
                         });
                     });
@@ -261,9 +205,9 @@ async function doRefreshCmd(list) {
 }
 
 function refreshCmd() {
-    cfgEpoch().then(epoch => {
+    API.cfgEpoch().then(epoch => {
         if (cfgLMT === epoch)   return;
-        cmdLoad().then(doRefreshCmd);
+        API.cmdLoad().then(doRefreshCmd);
         cfgLMT = epoch;
         // console.log(new Date(cfgLMT).toLocaleString());
     });
