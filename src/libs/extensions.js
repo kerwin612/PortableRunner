@@ -5,6 +5,12 @@ Element.prototype.clearChildren = function() {
     while (this.firstChild) {
         this.removeChild(this.firstChild);
     }
+    return this;
+}
+
+Element.prototype.setChild = function(child) {
+    this.clearChildren().appendChild(child);
+    return this;
 }
 
 Element.prototype.insertChildAtIndex = function(child, index) {

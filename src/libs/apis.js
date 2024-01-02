@@ -21,5 +21,5 @@ export function cfgEpoch() {
 }
 
 export function cmdRunner(cmdStr) {
-  return invoke("cmd_runner", { cmdStr });
+    return invoke("cmd_runner", { cmdStr });
 }

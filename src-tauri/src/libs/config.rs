@@ -23,7 +23,7 @@ pub struct Shortcut {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parameters_required: Option<bool>,
+    pub arguments_required: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub with_file_drop: Option<Vec<WithFileDrop>>,
 }
@@ -37,6 +37,8 @@ pub struct WithFileDrop {
     pub file_required: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub folder_required: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments_required: Option<bool>,
 }
 
 const CFG_NAME: &str = ".pr.json";
@@ -65,6 +67,7 @@ const DEFAULT_CFG: &str = r#"{
                 {
                     "pattern": ".*\\.(bat|cmd)$",
                     "fileRequired": true,
+                    "argumentsRequired": true,
                     "parameters": "/s /k \"{0}\""
                 }
             ],
@@ -120,7 +123,7 @@ const DEFAULT_CFG: &str = r#"{
         {
             "key": "open",
             "cmd": "explorer",
-            "parametersRequired": true,
+            "argumentsRequired": true,
             "group": "open",
             "withFileDrop": [
                 {

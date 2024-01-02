@@ -20,6 +20,7 @@ pub fn create_temp_file(text: &str) -> String {
     let file_path = temp_dir.join(&format!(".pr.tmp.{}.cmd", generate_random_string(16, "1234567890")));
 
     let mut file = fs::File::create(&file_path).unwrap();
+    write!(file, "chcp 65001\r\n").unwrap();
     write!(file, "{}", text).unwrap();
 
     file_path.to_str().unwrap().to_string()
