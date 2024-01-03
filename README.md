@@ -8,3 +8,8 @@
 * `pnpm install`
 * `pnpm tauri dev`
 * `pnpm tauri build`
+
+## Screenshots
+
+![](./screenshots/1.png)
+![](./screenshots/2.png)
