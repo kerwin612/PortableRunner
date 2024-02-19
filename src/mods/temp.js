@@ -13,7 +13,7 @@ const tmpl = `
 
 export function TempPage({ onArgumentsRequired, onBackClick }) {
     let div = document.createElement("div");
-    div.id = "container_with_file_drop";
+    div.id = "container_with_file";
     div.innerHTML = tmpl;
 
     let filePath = div.querySelector("#file_path");
@@ -24,9 +24,9 @@ export function TempPage({ onArgumentsRequired, onBackClick }) {
         filePath.value = file;
         matchList.clearChildren();
         matchs.forEach((i, iindex) => {
-            let cmd = getCmdlineWithFile(i, file, i.withFileDrop);
+            let cmd = getCmdlineWithFile(i, file, i.withFile);
             createItemElement(i, iindex, matchList, "match_list", () => cmd, async () => {
-                if (i.withFileDrop.argumentsRequired) {
+                if (i.withFile.argumentsRequired) {
                     await onArgumentsRequired(cmd);
                 } else {
                     await API.cmdRunner(cmd);

@@ -1,7 +1,7 @@
 const { writeText } = window.__TAURI__.clipboard;
 
 export function createItemElement(i, index, parent, idPrefix, getCMD, onClick) {
-    let ii = `${idPrefix}_item_${i.key}`;
+    let ii = `${idPrefix}_item_${i.cmd}`;
     let ie = document.getElementById(ii);
     if (ie == null) {
         ie = document.createElement("div");
@@ -11,7 +11,7 @@ export function createItemElement(i, index, parent, idPrefix, getCMD, onClick) {
     }
     parent.insertChildAtIndex(ie, index);
 
-    ie.innerHTML = `<span>${i.label ? (i.label + "(" + i.key + ")") : i.key}</span>`;
+    ie.innerHTML = `<span>${i.label ? (i.label + "(" + i.cmd + ")") : i.cmd}</span>`;
     ie.onclick = async (e) => {
         if (ie.classList.contains("disabled"))    return;
         ie.classList.add("disabled");
@@ -36,5 +36,5 @@ export function createItemElement(i, index, parent, idPrefix, getCMD, onClick) {
 }
 
 export function getCmdlineWithFile(i, file, fileDrop) {
-    return i.cmd + " " + fileDrop.parameters.replaceAll("{0}", file);
+    return `${i.run} ` + fileDrop.parameters.replaceAll("{0}", file);
 }

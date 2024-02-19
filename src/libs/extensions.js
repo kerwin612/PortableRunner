@@ -22,6 +22,10 @@ Element.prototype.insertChildAtIndex = function(child, index) {
     }
 }
 
+String.prototype.isValidPath = function() {
+    return /^(?:(?:[a-zA-Z]:[\\/])(?:[^<>:"|?*\r\n]+\\)*[^<>:"|?*\r\n]+$)|(?:\\\\?\\(?:[^<>:"|?*\r\n]+\\)*[^<>:"|?*\r\n]+$)|(?:[\\/])(?:[^<>:"|?*\r\n]+\\)*[^<>:"|?*\r\n]+$/.test(this);
+}
+
 String.prototype.isDir = async function() {
     try {
         let files = await readDir(this);

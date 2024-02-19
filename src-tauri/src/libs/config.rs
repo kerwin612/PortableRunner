@@ -14,8 +14,10 @@ pub struct Config {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Shortcut {
-    pub key: String,
     pub cmd: String,
+    pub run: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,7 +27,7 @@ pub struct Shortcut {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments_required: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub with_file_drop: Option<Vec<WithFileDrop>>,
+    pub with_file: Option<Vec<WithFileDrop>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -46,19 +48,19 @@ const CFG_NAME: &str = ".pr.json";
 const DEFAULT_CFG: &str = r#"{
     "shortcuts": [
         {
-            "key": "shutdown",
-            "cmd": "shutdown /s /f /t 0",
+            "cmd": "shutdown",
+            "run": "shutdown /s /f /t 0",
             "style": "background: linear-gradient(0deg, darkred 0%, white 50%, white 50%, darkred 100%);"
         },
         {
-            "key": "reboot",
-            "cmd": "shutdown /r /f /t 0",
+            "cmd": "reboot",
+            "run": "shutdown /r /f /t 0",
             "style": "background: linear-gradient(0deg, darkorange 0%, white 50%, white 50%, darkorange 100%);"
         },
         {
-            "key": "cmd",
             "cmd": "cmd",
-            "withFileDrop": [
+            "run": "cmd",
+            "withFile": [
                 {
                     "pattern": ".*",
                     "folderRequired": true,
@@ -74,34 +76,36 @@ const DEFAULT_CFG: &str = r#"{
             "style": "background-color: black; color: white;"
         },
         {
-            "key": "profile",
-            "cmd": "notepad %HOME%/.profile.cmd",
+            "cmd": "profile",
+            "run": "%HOME%/.profile.cmd",
+            "type": "file",
             "style": "background-color: pink;"
         },
         {
-            "key": "configuration",
-            "cmd": "notepad %HOME%/.pr.json",
+            "cmd": "configuration",
+            "run": "%HOME%/.pr.json",
+            "type": "file",
             "style": "background: linear-gradient(45deg, dodgerblue, whitesmoke);"
         },
         {
-            "key": "edge",
-            "cmd": "msedge",
+            "cmd": "edge",
+            "run": "msedge",
             "group": "accessories",
             "style": "background: linear-gradient(45deg, darkcyan, greenyellow);"
         },
         {
-            "key": "mstsc",
             "cmd": "mstsc",
+            "run": "mstsc",
             "group": "accessories",
             "style": "background-color: dodgerblue;"
         },
         {
-            "key": "notepad",
             "cmd": "notepad",
+            "run": "notepad",
             "group": "accessories",
-            "withFileDrop": [
+            "withFile": [
                 {
-                    "pattern": ".*\\.(txt|log|out)$",
+                    "pattern": ".*\\.(txt|log|out|bat|cmd|json)$",
                     "fileRequired": true,
                     "parameters": "\"{0}\""
                 }
@@ -109,23 +113,23 @@ const DEFAULT_CFG: &str = r#"{
             "style": "background-color: #5bc0de;"
         },
         {
-            "key": "calculator",
-            "cmd": "calc",
+            "cmd": "calculator",
+            "run": "calc",
             "group": "accessories",
             "style": "background-color: #6e98bf;"
         },
         {
-            "key": "paint",
-            "cmd": "mspaint",
+            "cmd": "paint",
+            "run": "mspaint",
             "group": "accessories",
             "style": "background: linear-gradient(217deg, rgba(255,0,0,.8), rgba(255,0,0,0) 70.71%), linear-gradient(127deg, rgba(0,255,0,.8), rgba(0,255,0,0) 70.71%), linear-gradient(336deg, rgba(0,0,255,.8), rgba(0,0,255,0) 70.71%);"
         },
         {
-            "key": "open",
-            "cmd": "explorer",
+            "cmd": "open",
+            "run": "explorer",
             "argumentsRequired": true,
             "group": "open",
-            "withFileDrop": [
+            "withFile": [
                 {
                     "pattern": ".*\\.(exe)$",
                     "fileRequired": true,
@@ -135,20 +139,20 @@ const DEFAULT_CFG: &str = r#"{
             "style": "background-color: navajowhite;"
         },
         {
-            "key": "open-home",
-            "cmd": "explorer %HOME%",
+            "cmd": "open-home",
+            "run": "explorer %HOME%",
             "group": "open",
             "style": "background: linear-gradient(45deg, yellowgreen, greenyellow);"
         },
         {
-            "key": "open-link",
-            "cmd": "explorer %PORTABLE_RUNNER_ENV_LINK_PATH%",
+            "cmd": "open-link",
+            "run": "explorer %PORTABLE_RUNNER_ENV_LINK_PATH%",
             "group": "open",
             "style": "background: linear-gradient(45deg, forestgreen, whitesmoke);"
         },
         {
-            "key": "open-target",
-            "cmd": "explorer %PORTABLE_RUNNER_ENV_TARGET_PATH%",
+            "cmd": "open-target",
+            "run": "explorer %PORTABLE_RUNNER_ENV_TARGET_PATH%",
             "group": "open",
             "style": "background: linear-gradient(45deg, dodgerblue, bisque);"
         }

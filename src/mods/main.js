@@ -12,7 +12,7 @@ const tmpl = `
     </div>
 `;
 
-export function MainPage({ onReloadRequired, onFileDroped }) {
+export function MainPage({ onReloadRequired, onWithFile }) {
     let div = document.createElement("div");
     div.id = "container_cmd";
     div.innerHTML = tmpl;
@@ -22,9 +22,13 @@ export function MainPage({ onReloadRequired, onFileDroped }) {
     let unListenFileDrop;
 
     function cmdInput() {
-        let cmdStr = inputCmd.value;
+        let cmdStr = inputCmd.value.trim();
         inputCmd.value = null;
-        return API.cmdRunner(cmdStr.trim());
+        if (cmdStr.isValidPath()) {
+            div.runWithFile({ file: cmdStr });
+        } else {
+            API.cmdRunner(cmdStr);
+        }
     }
 
     inputCmd.onkeydown = (e) => {
@@ -32,20 +36,51 @@ export function MainPage({ onReloadRequired, onFileDroped }) {
         cmdInput();
     };
 
-    div.setData = function({ cmd }) {
-        inputCmd.value = cmd;
+    div.setData = function({ cmdValue }) {
+        inputCmd.value = cmdValue;
         inputCmd.focus();
+    }
+
+    div.runWithFile = async function({ file }) {
+        let isDir = await file.isDir();
+        let matchs = []
+        div.currentCmds.forEach(i => {
+            if (!!!(i.withFile)) return;
+            i.withFile.forEach(j => {
+                if (j.pattern && new RegExp(j.pattern).test(file)) {
+                    if (((j?.folderRequired??false) === true && !isDir) || ((j?.fileRequired??false) === true && isDir)) {
+                        return;
+                    }
+                    matchs[matchs.length] = {...i, cmd: `${i.run} ${j.parameters}`, withFile: j};
+                }
+            });
+        });
+        if (matchs.length === 0) {
+            div.setData({ cmdValue: `"${file}"` });
+            return;
+        } else if (matchs.length === 1) {
+            let i = matchs[0];
+            let cmdValue = getCmdlineWithFile(i, file, i.withFile);
+            if (i.withFile.argumentsRequired) {
+                div.setData({ cmdValue: `${cmdValue} ` });
+                return;
+            } else {
+                await API.cmdRunner(cmdValue);
+            }
+        } else {
+            onWithFile(file, matchs);
+        }
     }
 
     div.doRefreshCmd = async function(list) {
         let groups = {};
         let items = {};
-        list.forEach(i => {
+        (div.currentCmds = list).forEach(i => {
             let group = i.group??"default";
             let value = groups[group]||[];
             value[value.length] = i;
             groups[group] = value;
-            items[i.key] = i;
+            items[i.cmd] = i;
         });
 
         cmdList.querySelectorAll(`.cmd_sub_list`).forEach(g => {
@@ -73,11 +108,13 @@ export function MainPage({ onReloadRequired, onFileDroped }) {
             cmdList.insertChildAtIndex(ge, gindex++);
 
             groups[group].forEach((i, iindex) => {
-                createItemElement(i, iindex, ge, gi, () => i.cmd, async () => {
+                createItemElement(i, iindex, ge, gi, () => i.run, async () => {
                     if (i.argumentsRequired) {
-                        div.setData({ cmd: i.cmd + " " });
+                        div.setData({ cmdValue: `${i.run} ` });
+                    } else if (i.type === 'file') {
+                        await div.runWithFile({ file: i.run });
                     } else {
-                        await API.cmdRunner(i.cmd);
+                        await API.cmdRunner(i.run);
                     }
                 })
             });
@@ -90,41 +127,14 @@ export function MainPage({ onReloadRequired, onFileDroped }) {
             if (file.endsWith('.lnk')) {
                 API.readLnk(file).then(async (lnkInfo) => {
                     API.addShortcut({
-                        key: (lnkInfo?.name ?? '') || await lnkInfo.target.getFileNameWithoutExt(),
-                        cmd: `"${lnkInfo.target}" ${lnkInfo?.arguments ?? ''}`,
+                        cmd: (lnkInfo?.name ?? '') || await lnkInfo.target.getFileNameWithoutExt(),
+                        run: `"${lnkInfo.target}" ${lnkInfo?.arguments ?? ''}`,
                     }).then(() => {
                         onReloadRequired();
                     });
                 });
             } else {
-                let isDir = await file.isDir();
-                let matchs = []
-                list.forEach(i => {
-                    if (!!!(i.withFileDrop)) return;
-                    i.withFileDrop.forEach(j => {
-                        if (j.pattern && new RegExp(j.pattern).test(file)) {
-                            if (((j?.folderRequired??false) === true && !isDir) || ((j?.fileRequired??false) === true && isDir)) {
-                                return;
-                            }
-                            matchs[matchs.length] = {...i, key: `${i.cmd} ${j.parameters}`, withFileDrop: j};
-                        }
-                    });
-                });
-                if (matchs.length === 0) {
-                    div.setData({ cmd: `"${file}"` });
-                    return;
-                } else if (matchs.length === 1) {
-                    let i = matchs[0];
-                    let cmd = getCmdlineWithFile(i, file, i.withFileDrop);
-                    if (i.withFileDrop.argumentsRequired) {
-                        div.setData({ cmd });
-                        return;
-                    } else {
-                        await API.cmdRunner(cmd);
-                    }
-                } else {
-                    onFileDroped(file, matchs);
-                }
+                await div.runWithFile({ file });
             }
         });
     }

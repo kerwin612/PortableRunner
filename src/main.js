@@ -38,15 +38,15 @@ async function loaded() {
 
     mainPage = MainPage({
         onReloadRequired: async () => await refreshCmd(),
-        onFileDroped: async (file, matchs) => {
+        onWithFile: async (file, matchs) => {
             tempPage.setData({ file, matchs });
             await showWithFileDropCmd();
         }
     });
 
     tempPage = TempPage({
-        onArgumentsRequired: async (cmd) => {
-            await mainPage.setData({ cmd });
+        onArgumentsRequired: async (cmdValue) => {
+            await mainPage.setData({ cmdValue });
             await showCmd();
         },
         onBackClick: async () => await showCmd()
