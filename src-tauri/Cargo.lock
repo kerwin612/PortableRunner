@@ -2689,7 +2689,7 @@ dependencies = [
 
 [[package]]
 name = "portable_runner"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "lnk",
  "mount_dir",
