@@ -1,6 +1,6 @@
 [package]
 name = "portable_runner"
-version = "0.1.1"
+version = "0.1.2"
 description = "Mount the portable directory as a consistent user directory. Then, based on this user directory, run your program."
 authors = ["kerwin612 <kerwin612@qq.com>"]
 license = "MIT"
