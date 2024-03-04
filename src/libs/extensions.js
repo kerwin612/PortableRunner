@@ -30,7 +30,9 @@ String.prototype.isDir = async function() {
     try {
         let files = await readDir(this);
         return !!files;
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
     return false;
 }
 
@@ -39,6 +41,8 @@ String.prototype.getFileNameWithoutExt = async function() {
         let namewithext = await basename(this);
         let ext = await extname(this);
         return namewithext.substring(0, namewithext.length - ext.length - 1);
-    } catch (error) {}
+    } catch (error) {
+        console.error(error);
+    }
     return null;
 }
