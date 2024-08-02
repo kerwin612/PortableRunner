@@ -1,7 +1,7 @@
 extern crate lnk;
 
 use lnk::ShellLink;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct LnkInfo {
@@ -19,11 +19,13 @@ pub fn read_lnk(lnk: String) -> LnkInfo {
                 target: link_info.local_base_path().clone(),
                 arguments: shortcut.arguments().clone(),
             }
-        },
-        &None => return LnkInfo {
-            name: None,
-            target: None,
-            arguments: None,
-        },
+        }
+        &None => {
+            return LnkInfo {
+                name: None,
+                target: None,
+                arguments: None,
+            }
+        }
     }
 }

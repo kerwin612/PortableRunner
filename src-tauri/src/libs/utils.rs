@@ -1,10 +1,10 @@
 extern crate random_string;
 
-use std::fs;
-use std::env;
-use std::io::{Write};
-use std::path::{Component, Path};
 use random_string::generate;
+use std::env;
+use std::fs;
+use std::io::Write;
+use std::path::{Component, Path};
 
 pub fn get_disk(path: &str) -> &str {
     match Path::new(path).components().next().unwrap() {
@@ -17,7 +17,12 @@ pub fn get_disk(path: &str) -> &str {
 
 pub fn create_temp_file(text: &str) -> String {
     let temp_dir = env::temp_dir();
-    let file_path = temp_dir.join(&format!(".pr.tmp.{}.cmd", generate_random_string(16, "1234567890")));
+    fs::create_dir_all(&temp_dir).unwrap();
+    let file_path = temp_dir.join(&format!(
+        ".pr.tmp.{}.cmd",
+        generate_random_string(16, "1234567890")
+    ));
+    //println!("Attempting to create a file: {}", file_path.display());
 
     let mut file = fs::File::create(&file_path).unwrap();
     write!(file, "chcp 65001\r\n").unwrap();

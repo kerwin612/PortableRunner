@@ -37,24 +37,6 @@ input:focus {
   -webkit-text-size-adjust: 100%;
 }
 
-#container_set {
-    display: flex;
-    text-align: center;
-    flex-direction: column;
-    justify-content: space-around;
-}
-
-#container_set input{
-    max-width: 120px;
-}
-
-#container_cmd {
-    display: flex;
-    overflow: hidden;
-    max-height: 380px;
-    flex-direction: column;
-}
-
 .hide {
     display: none!important;
 }

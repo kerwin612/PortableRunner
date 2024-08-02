@@ -1,0 +1,10 @@
+.container {
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    justify-content: space-around;
+
+    input {
+        max-width: 120px;
+    }
+}
