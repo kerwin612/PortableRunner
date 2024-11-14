@@ -4,10 +4,8 @@ import Init from './mods/Init.module';
 import Temp from './mods/Temp.module';
 import Main from './mods/Main.module';
 
-import { loadSet, saveSet } from './libs/apis';
+import { saveSet, loadSet } from './libs/apis';
 import './App.css';
-
-
 
 export default function App() {
 

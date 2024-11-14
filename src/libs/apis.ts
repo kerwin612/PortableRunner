@@ -1,15 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getMatches } from '@tauri-apps/plugin-cli';
 
 export function readLnk(lnk: string) {
     return invoke("read_lnk", { lnk });
 }
 
-export function loadSet() {
-    return invoke("load_set");
-}
-
 export function saveSet(set: any) {
-    return invoke("save_set", { set });
+    return invoke("set_mount", { set });
 }
 
 export function loadCmds() {
@@ -17,7 +14,7 @@ export function loadCmds() {
 }
 
 export function cfgEpoch() {
-    return invoke<number>("cfg_epoch");
+    return invoke<number>("get_cfg_epoch");
 }
 
 export function runCmd(cmdStr: string) {
@@ -26,4 +23,16 @@ export function runCmd(cmdStr: string) {
 
 export function addShortcut(shortcut: any) {
     return invoke("add_shortcut", { shortcut });
+}
+
+export function loadSet() {
+    return new Promise(async (resolve) => {
+        const matches = await getMatches();
+        const args = matches.args;
+        resolve({
+            tpath: args?.tpath?.value ?? '',
+            lpath: args?.lpath?.value ?? '',
+            hpath: args?.hpath?.value ?? '',
+        });
+    });
 }

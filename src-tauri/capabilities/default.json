@@ -4,7 +4,14 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "permissions": [
+    "fs:default",
+    "cli:default",
     "core:default",
-    "shell:allow-open"
+    "shell:allow-open",
+    "clipboard-manager:allow-write-text",
+    {
+        "identifier": "fs:scope",
+        "allow": [{ "path": "**" }]
+    }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "portable_runner",
+  "name": "portable-runner",
   "private": true,
   "version": "0.1.3",
   "type": "module",
@@ -10,25 +10,20 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.1.1",
-    "@tauri-apps/plugin-clipboard-manager": "^2.0.0",
-    "@tauri-apps/plugin-dialog": "^2.0.1",
-    "@tauri-apps/plugin-fs": "^2.0.2",
-    "@tauri-apps/plugin-global-shortcut": "^2.0.0",
-    "@tauri-apps/plugin-http": "^2.0.1",
-    "@tauri-apps/plugin-notification": "^2.0.0",
-    "@tauri-apps/plugin-os": "^2.0.0",
-    "@tauri-apps/plugin-process": "^2.0.0",
-    "@tauri-apps/plugin-shell": "^2.0.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-cli": "^2.0.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2",
+    "@tauri-apps/plugin-fs": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.1.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
   }
 }

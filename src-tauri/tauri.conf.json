@@ -1,7 +1,8 @@
 {
+  "$schema": "https://schema.tauri.app/config/2",
   "productName": "PortableRunner",
   "version": "0.1.3",
-  "identifier": "io.github.kerwin612.PortableRunner",
+  "identifier": "io.github.kerwin612.portable-runner",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -11,11 +12,12 @@
   "app": {
     "windows": [
       {
-        "fullscreen": false,
-        "resizable": false,
         "title": "PortableRunner",
         "width": 600,
-        "height": 400
+        "height": 400,
+        "center": true,
+        "resizable": false,
+        "maximizable": false
       }
     ],
     "security": {
@@ -23,6 +25,7 @@
     },
     "trayIcon": {
       "iconPath": "icons/icon.png",
+      "menuOnLeftClick": false,
       "iconAsTemplate": true
     }
   },
@@ -41,5 +44,26 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "cli": {
+        "args": [
+          {
+            "name": "tpath",
+            "index": 1,
+            "takesValue": true
+          },
+          {
+            "name": "lpath",
+            "index": 2,
+            "takesValue": true
+          },
+          {
+            "name": "hpath",
+            "index": 3,
+            "takesValue": true
+          }
+        ]
+    }
   }
 }
