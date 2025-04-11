@@ -1,10 +1,10 @@
-use std::fs;
-use std::env;
-use std::path;
-use std::time::{UNIX_EPOCH};
-use std::io::{Write, Error, ErrorKind};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
+use std::env;
+use std::fs;
+use std::io::{Error, ErrorKind, Write};
+use std::path;
+use std::time::UNIX_EPOCH;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -169,18 +169,16 @@ pub fn generate_default_cfg() -> Result<bool, Error> {
             let pr_path = home_path.join(CFG_NAME);
             if !(pr_path.exists()) {
                 match fs::File::create(pr_path) {
-                    Ok(mut file) => {
-                        match file.write_all(DEFAULT_CFG.as_bytes()) {
-                            Ok(_) => Ok(true),
-                            Err(e) => Err(e),
-                        }
+                    Ok(mut file) => match file.write_all(DEFAULT_CFG.as_bytes()) {
+                        Ok(_) => Ok(true),
+                        Err(e) => Err(e),
                     },
                     Err(e) => Err(e),
                 }
             } else {
                 Ok(false)
             }
-        },
+        }
         Err(_) => Err(Error::new(ErrorKind::NotFound, "invalid HOME")),
     }
 }
@@ -191,11 +189,17 @@ pub fn epoch_cfg() -> Result<u128, Error> {
             let home_path = path::Path::new(&val);
             let pr_path = home_path.join(CFG_NAME);
             if pr_path.exists() {
-                Ok(fs::metadata(pr_path).unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_millis())
+                Ok(fs::metadata(pr_path)
+                    .unwrap()
+                    .modified()
+                    .unwrap()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis())
             } else {
                 Ok(0)
             }
-        },
+        }
         Err(_) => Err(Error::new(ErrorKind::NotFound, "invalid HOME")),
     }
 }
@@ -207,7 +211,7 @@ pub fn read_cfg() -> Result<Config, Error> {
             let pr_path = home_path.join(CFG_NAME);
             let content = fs::read_to_string(&pr_path).unwrap();
             Ok(serde_json::from_str(&content)?)
-        },
+        }
         Err(_) => Err(Error::new(ErrorKind::NotFound, "invalid HOME")),
     }
 }
@@ -226,7 +230,7 @@ pub fn save_cfg(config: &Config) -> Result<(), Error> {
             let mut file = fs::File::create(pr_path).unwrap();
             file.write_all(serialized.as_bytes()).unwrap();
             Ok(())
-        },
+        }
         Err(_) => Err(Error::new(ErrorKind::NotFound, "invalid HOME")),
     }
 }
