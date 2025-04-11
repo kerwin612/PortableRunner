@@ -2,15 +2,15 @@ mod libs;
 use libs::config::Shortcut;
 use libs::lnk::LnkInfo;
 
-use serde::{Deserialize, Serialize};
 use mount_dir;
+use serde::{Deserialize, Serialize};
 
 use tauri::{
     menu::{MenuBuilder, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconEvent},
     AppHandle, Manager,
 };
-use tauri_plugin_shell::ShellExt;
+use tauri_plugin_opener::OpenerExt;
 
 use std::env::{set_var, var};
 use std::fs;
@@ -45,52 +45,52 @@ fn set_mount(set: Storage, app_handle: AppHandle) -> bool {
             libs::config::generate_default_cfg().unwrap();
             let tray = app_handle.tray_by_id("main").expect("not found tray");
             tray.set_tooltip(Some(&format!(
-                    "PortableRunner ({} <=> {})",
-                    &set.lpath, &set.tpath
-                )))
-                .unwrap();
+                "PortableRunner ({} <=> {})",
+                &set.lpath, &set.tpath
+            )))
+            .unwrap();
             tray.set_menu(Some(
-                    MenuBuilder::new(&app_handle)
-                        .item(&MenuItem::with_id(&app_handle, "tpath", "Target", true, None::<&str>).unwrap())
-                        .item(&MenuItem::with_id(&app_handle, "hpath", "Home", true, None::<&str>).unwrap())
-                        .item(&MenuItem::with_id(&app_handle, "lpath", "Link", true, None::<&str>).unwrap())
-                        .item(&MenuItem::with_id(&app_handle, "help", "Help", true, None::<&str>).unwrap())
-                        .item(&MenuItem::with_id(&app_handle, "exit", "Exit", true, None::<&str>).unwrap())
-                        .build()
-                        .unwrap(),
-                ))
-                .unwrap();
+                MenuBuilder::new(&app_handle)
+                    .item(
+                        &MenuItem::with_id(&app_handle, "tpath", "Target", true, None::<&str>)
+                            .unwrap(),
+                    )
+                    .item(
+                        &MenuItem::with_id(&app_handle, "hpath", "Home", true, None::<&str>)
+                            .unwrap(),
+                    )
+                    .item(
+                        &MenuItem::with_id(&app_handle, "lpath", "Link", true, None::<&str>)
+                            .unwrap(),
+                    )
+                    .item(
+                        &MenuItem::with_id(&app_handle, "help", "Help", true, None::<&str>)
+                            .unwrap(),
+                    )
+                    .item(
+                        &MenuItem::with_id(&app_handle, "exit", "Exit", true, None::<&str>)
+                            .unwrap(),
+                    )
+                    .build()
+                    .unwrap(),
+            ))
+            .unwrap();
             let tpath_clone = format!("file://{}", &set.tpath);
             let lpath_clone = format!("file://{}", &set.lpath);
             let hpath_clone = format!("file://{}\\{}", &set.lpath, &set.hpath);
             app_handle.on_menu_event(move |app, event| match event.id().as_ref() {
-                "tpath" => {
-                    match app
-                        .shell()
-                        .open(&tpath_clone, None)
-                    {
-                        Err(_) => (),
-                        Ok(_) => (),
-                    }
+                "tpath" => match app.opener().open_path(&tpath_clone, None::<&str>) {
+                    Err(_) => (),
+                    Ok(_) => (),
                 },
-                "lpath" => {
-                    match app
-                        .shell()
-                        .open(&lpath_clone, None)
-                    {
-                        Err(_) => (),
-                        Ok(_) => (),
-                    }
-                }
-                "hpath" => {
-                    match app
-                        .shell()
-                        .open(&hpath_clone, None)
-                    {
-                        Err(_) => (),
-                        Ok(_) => (),
-                    }
-                }
+                "lpath" => match app.opener().open_path(&lpath_clone, None::<&str>) {
+                    Err(_) => (),
+                    Ok(_) => (),
+                },
+                "hpath" => match app.opener().open_path(&hpath_clone, None::<&str>) {
+                    Err(_) => (),
+                    Ok(_) => (),
+                },
                 _ => {}
             });
             let window = app_handle.get_webview_window("main").unwrap();
@@ -142,15 +142,16 @@ async fn run_cmd(cmd_str: String) -> () {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_cli::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             get_cfg_epoch,
             add_shortcut,
@@ -177,9 +178,7 @@ pub fn run() {
                 ))?;
             app.on_menu_event(move |app, event| match event.id().as_ref() {
                 "help" => {
-                    match app
-                        .shell()
-                        .open("https://github.com/kerwin612/PortableRunner", None)
+                    match app.opener().open_path("https://github.com/kerwin612/PortableRunner", None::<&str>)
                     {
                         Err(_) => (),
                         Ok(_) => (),
